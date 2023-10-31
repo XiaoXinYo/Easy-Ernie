@@ -5,7 +5,7 @@ with open('./README.md', 'r', encoding='utf-8') as file:
 
 setup(
     name='easy-ernie',
-    version='0.1.8',
+    version='0.1.9',
     description='简洁的调用文心一言的WebAPI',
     long_description=long_description,
     long_description_content_type='text/markdown',
