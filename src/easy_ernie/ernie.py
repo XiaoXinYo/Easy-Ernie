@@ -34,20 +34,15 @@ class Ernie:
         data = requests.get(f'https://api.hack-er.cn/other/get_ernie_acs_token?BAIDUID={self.BAIDUID}',).json()
         return data['data']
 
-    def checkJson(self, data: str) -> None:
+    def generateCheckJson(self, data: str) -> Optional[dict]:
         try:
             data = json.loads(data)
         except:
             raise Exception('请求失败,响应格式错误')
 
-        if data['code'] != 0:
+        if 'task_id' not in data and data['code'] != 0:
             raise Exception(f'请求失败,{data["msg"]}')
-
-    def checkResponse(self) -> None:
-        if self.response.status_code != 200:
-            raise Exception('请求失败,检查网络')
-
-        self.checkJson(self.response.text)
+        return data
 
     def request(self, method: str, url: str, data: Optional[dict]=None, stream=False, check=True) -> requests.Response:
         if method == 'get':
@@ -57,7 +52,7 @@ class Ernie:
             self.response = self.session.request(method, url, data=json.dumps(data), stream=stream)
 
         if not stream and check:
-            self.checkResponse()
+            self.generateCheckJson(self.response.text)
         return self.response
 
     def get(self, url: str, data: Optional[dict]=None, stream=False, check=True) -> requests.Response:
@@ -267,7 +262,7 @@ class Ernie:
             check=False
         )
 
-        imagePattern = r'<img[^>]*\ssrc=[\'"]([^\'"]+)[\'"][^>]*\s/>'
+        imageUrlPattern = r'<img[^>]*\ssrc=[\'"]([^\'"]+)[\'"][^>]*\s/>'
         for line in data.iter_lines():
             if not line:
                 continue
@@ -277,11 +272,13 @@ class Ernie:
                 event = line[6:]
                 continue
             elif not line.startswith('data:'):
-                self.checkJson(line)
+                self.generateCheckJson(line)
 
             data = line[5:]
-            self.checkJson(data)
-            data = json.loads(data)
+            data = self.generateCheckJson(data)
+            if 'task_id' in data:
+                continue
+
             data = data['data']
             if event == 'major':
                 sessionId = data['createSessionResponseVoCommonResult']['data']['sessionId']
@@ -290,8 +287,8 @@ class Ernie:
                 done = data['is_end']
                 if done == 0:
                     answer = data['content']
-                    urls = re.findall(imagePattern, answer)
-                    answer = re.sub(imagePattern, '', answer)
+                    urls = re.findall(imageUrlPattern, answer)
+                    answer = re.sub(imageUrlPattern, '', answer)
                     answer = answer.replace('<br>', '\n')
                     yield {
                         'answer': answer,
@@ -302,8 +299,8 @@ class Ernie:
                     }
                 else:
                     answer = data['tokens_all']
-                    urls = re.findall(imagePattern, answer)
-                    answer = re.sub(imagePattern, '', answer)
+                    urls = re.findall(imageUrlPattern, answer)
+                    answer = re.sub(imageUrlPattern, '', answer)
                     answer = answer.replace('<br>', '\n')
                     answer = answer.strip()
                     yield {
