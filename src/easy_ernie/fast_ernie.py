@@ -1,9 +1,9 @@
 from typing import Generator
-from .ernie import Ernie
+from . import ernie
 
 class FastErnie:
     def __init__(self, BAIDUID: str, BDUSS_BFESS: str):
-        self.ernie = Ernie(BAIDUID, BDUSS_BFESS)
+        self.ernie = ernie.Ernie(BAIDUID, BDUSS_BFESS)
         self.sessionId = ''
         self.sessionName = ''
         self.parentChatId = '0'

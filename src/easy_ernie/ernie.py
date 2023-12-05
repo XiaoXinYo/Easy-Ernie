@@ -1,11 +1,8 @@
 from typing import Generator, Optional
-import time
+from . import auxiliary
 import requests
 import re
 import json
-
-def getTimestamp():
-    return int(time.time() * 1000)
 
 class Ernie:
     def __init__(self, BAIDUID: str, BDUSS_BFESS: str):
@@ -34,7 +31,7 @@ class Ernie:
         data = requests.get(f'https://api.hack-er.cn/other/get_ernie_acs_token?BAIDUID={self.BAIDUID}',).json()
         return data['data']
 
-    def generateCheckJson(self, data: str) -> Optional[dict]:
+    def checkJson(self, data: str) -> None:
         try:
             data = json.loads(data)
         except:
@@ -42,7 +39,6 @@ class Ernie:
 
         if 'task_id' not in data and data['code'] != 0:
             raise Exception(f'请求失败,{data["msg"]}')
-        return data
 
     def request(self, method: str, url: str, data: Optional[dict]=None, stream=False, check=True) -> requests.Response:
         if method == 'get':
@@ -52,7 +48,7 @@ class Ernie:
             self.response = self.session.request(method, url, data=json.dumps(data), stream=stream)
 
         if not stream and check:
-            self.generateCheckJson(self.response.text)
+            self.checkJson(self.response.text)
         return self.response
 
     def get(self, url: str, data: Optional[dict]=None, stream=False, check=True) -> requests.Response:
@@ -69,7 +65,7 @@ class Ernie:
             'https://yiyan.baidu.com/eb/session/top/list',
             {
                 'deviceType': 'pc',
-                'timestamp': getTimestamp()
+                'timestamp': auxiliary.getTimestamp()
             }
         ).json()
         normalData = self.post(
@@ -77,22 +73,38 @@ class Ernie:
             {
                 'deviceType': 'pc',
                 'pageSize': 1000,
-                'timestamp': getTimestamp()
+                'timestamp': auxiliary.getTimestamp()
             }
         ).json()
+        topData = topData['data']['sessions']
+        normalData = normalData['data']['sessions'] or []
+
+        tops = []
+        normals = []
+        for session in topData + normalData:
+            conversation = {
+                'sessionId': session['sessionId'],
+                'name': session['sessionName'],
+                'state': session['state'],
+                'createTimestamp': auxiliary.timeToTimestamp(session['createTime']),
+            }
+            if session in topData:
+                tops.append(conversation)
+            else:
+                normals.append(conversation)
         return {
-            'top': topData['data']['sessions'],
-            'normal': normalData['data']['sessions'] or []
+            'top': tops,
+            'normal': normals
         }
 
-    def newConversation(self, sessionName: str) -> str:
+    def newConversation(self, name: str) -> str:
         data = self.post(
             'https://yiyan.baidu.com/eb/session/new',
             {
                 'deviceType': 'pc',
                 'plugins': [],
-                'sessionName': sessionName,
-                'timestamp': getTimestamp()
+                'sessionName': name,
+                'timestamp': auxiliary.getTimestamp()
             }
         ).json()
         return data['data']['sessionId']
@@ -104,9 +116,9 @@ class Ernie:
                 'deviceType': 'pc',
                 'sessionId': sessionId,
                 'sessionName': name,
-                'timestamp': getTimestamp()
+                'timestamp': auxiliary.getTimestamp()
             }
-        ).json()
+        )
         return True
 
     def deleteConversation(self, sessionId: str) -> bool:
@@ -115,7 +127,7 @@ class Ernie:
             {
                 'deviceType': 'pc',
                 'sessionId': sessionId,
-                'timestamp': getTimestamp()
+                'timestamp': auxiliary.getTimestamp()
             },
             check=False
         ).json()
@@ -127,7 +139,7 @@ class Ernie:
             {
                 'deviceType': 'pc',
                 'sessionIds': sessionIds,
-                'timestamp': getTimestamp()
+                'timestamp': auxiliary.getTimestamp()
             },
             check=False
         ).json()
@@ -139,7 +151,7 @@ class Ernie:
             {
                 'deviceType': 'pc',
                 'sessionId': sessionId,
-                'timestamp': getTimestamp()
+                'timestamp': auxiliary.getTimestamp()
             },
             check=False
         ).json()
@@ -151,7 +163,7 @@ class Ernie:
             {
                 'deviceType': 'pc',
                 'sessionId': sessionId,
-                'timestamp': getTimestamp()
+                'timestamp': auxiliary.getTimestamp()
             },
             check=False
         ).json()
@@ -169,6 +181,7 @@ class Ernie:
                 break
         if not base:
             return None
+        del base['sessionId']
 
         data = self.post(
             'https://yiyan.baidu.com/eb/chat/history',
@@ -176,7 +189,7 @@ class Ernie:
                 'deviceType': 'pc',
                 'pageSize': 2000,
                 'sessionId': sessionId,
-                'timestamp': getTimestamp(),
+                'timestamp': auxiliary.getTimestamp(),
             }
         ).json()
         chats = data['data']['chats']
@@ -187,7 +200,7 @@ class Ernie:
                 'chatId': chat['id'],
                 'role': chat['role'],
                 'text': chat['message'][0]['content'],
-                'createTime': chat['createTime'],
+                'createTimestamp': auxiliary.timeToTimestamp(chat['createTime'])
             })
         currentChatId = data['data']['currentChatId']
         return {
@@ -201,29 +214,30 @@ class Ernie:
         conversations = []
         for conversation in data['data']:
             conversations.append({
-                'shareId': conversation['id'],
-                'sessionId': conversation['sessionId'],
+                'shareId': str(conversation['id']),
+                'sessionId': str(conversation['sessionId']),
+                'chatIds': conversation['chatIds'].split(','),
                 'key': conversation['shareKey'],
-                'createTime': conversation['updateTime'],
+                'createTimestamp': auxiliary.timeToTimestamp(data['createTime']),
                 'userId': conversation['userId']
             })
         return conversations
 
     def deleteShareConversation(self, shareId: str) -> bool:
-        self.delete(
+        data = self.delete(
             f'https://yiyan.baidu.com/eb/share/{shareId}',
             {}
-        )
-        return True
+        ).json()
+        return True if data['code'] == 1 else False
 
-    def deleteShareConversations(self, userId: str) -> bool:
-        self.delete(
+    def deleteAllShareConversation(self, userId: str) -> bool:
+        data = self.delete(
             'https://yiyan.baidu.com/eb/share/all',
             {
                 'userId': userId
             }
-        )
-        return True
+        ).json()
+        return True if data['code'] == 1 else False
 
     def shareConversation(self, sessionId: str, chatIds: list) -> str:
         data = self.post(
@@ -232,7 +246,7 @@ class Ernie:
                 'botChatId': chatIds,
                 'deviceType': 'pc',
                 'sessionId': sessionId,
-                'timestamp': getTimestamp()
+                'timestamp': auxiliary.getTimestamp()
             }
         ).json()
         return data['data']['key']
@@ -257,7 +271,7 @@ class Ernie:
                 'sessionName': sessionName,
                 'sign': acsToken,
                 'text': question,
-                'timestamp': getTimestamp(),
+                'timestamp': auxiliary.getTimestamp(),
                 'type': 10
             },
             stream=True,
@@ -274,10 +288,10 @@ class Ernie:
                 event = line[6:]
                 continue
             elif not line.startswith('data:'):
-                self.generateCheckJson(line)
+                self.checkJson(line)
 
             data = line[5:]
-            data = self.generateCheckJson(data)
+            data = json.loads(data)
             if 'task_id' in data:
                 continue
 
