@@ -6,19 +6,17 @@ def getConversation(self) -> dict
 2. 返回示例:
 ```python
 {
-    "top": [{
-        "sessionId": "17401225",
-        "createTime": "2023-06-30 02:14:49",
-        "sessionName": "你好",
-        "state": 1,
-        "pluginIds": ""
+    'top': [{
+        'sessionId': '17401225',
+        'name': '你好',
+        'state': 1,
+        'createTimestamp': 1701682120
     }],
-    "normal": [{
-        "sessionId": "33201285",
-        "createTime": "2023-08-31 11:15:31",
-        "sessionName": "你好",
-        "state": 1,
-        "pluginIds": ""
+    'normal': [{
+        'sessionId': '37401225',
+        'name': '你好',
+        'state': 1,
+        'createTimestamp': 1701682120
     }]
 }
 ```
@@ -85,36 +83,34 @@ def getConversationDetail(self, sessionId: str) -> Optional[dict]
 ```python
 {
     'base': {
-        'sessionId': '3110956036',
-        'createTime': '2023-08-31 18:49:37',
-        'sessionName': '你好',
+        'name': '你好',
         'state': 1,
-        'pluginIds': ''
+        'createTimestamp': 1701682120
     },
     'histories': [
         {
             'chatId': '168463680',
             'role': 'user',
             'text': '你好',
-            'createTime': '2023-08-31 18:49:37'
+            'createTimestamp': 1701677042
         },
         {
             'chatId': '168463681',
             'role': 'robot',
             'text': '你好！我很高兴为你提供帮助。请问有什么我可以为你做的吗？',
-            'createTime': '2023-08-31 18:49:40'
+            'createTimestamp': 1701677042
         },
         {
             'chatId': '168463679',
             'role': 'robot',
             'text': '',
-            'createTime': '2023-08-31 18:49:37'
+            'createTimestamp': 1701677042,
         }
     ],
     'currentChatId': '168463681'
 }
 ```
-提示: `currentChatId`当作`askStream`或`ask`的`parentChatId`.
+提示: `currentChatId`为`askStream`或`ask`的`parentChatId`.
 ## getShareConversation
 ```python
 def getShareConversation(self) -> list
@@ -126,8 +122,9 @@ def getShareConversation(self) -> list
     {
     'shareId': '1521',
     'sessionId': '3110956036',
+    'chatIds': ['168463680', '168463681', '168463679'],
     'key': 'IUGAEK',
-    'createTime': '2023-08-31 18:49:37',
+    'createTimestamp': 1701677042,
     'userId': '7654765',
     }
 ]
@@ -143,9 +140,9 @@ True
 ```
 ## deleteShareConversations
 ```python
-def deleteShareConversations(self, userId: str) -> bool
+def deleteAllShareConversation(self, userId: str) -> bool
 ```
-1. 功能: 批量删除分享会话.
+1. 功能: 删除全部分享会话.
 2. 返回示例:
 ```python
 True
