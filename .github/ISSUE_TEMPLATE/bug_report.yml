@@ -9,8 +9,6 @@ body:
       options:
         - label: easy-ernie为最新版本
           required: true
-        - label: requests为最新版本
-          required: true
         - label: 在Issue无法找到它
           required: true
   - type: dropdown
