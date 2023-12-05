@@ -3,14 +3,13 @@
 2. 由于文心一言的Acs-Token算法的参数不定时的变化,所以包里调用了API.感兴趣的或有自动更新方法的可以联系我.
 3. 若出现了`用户访问被限制`请到[Isuue](https://github.com/XiaoXinYo/Easy-Ernie/issues/6)回复,我会及时更新Acs-Token算法的参数.
 ---
-![Release](https://img.shields.io/badge/Release-0.2.0-blue)
+![Release](https://img.shields.io/badge/Release-0.2.1-blue)
 ---
 ## 介绍
 简洁的调用文心一言的WebAPI.
 ## 需求
 1. 语言: Python3.8+.
-2. 包: requests.
-3. 其他: 文心一言账户.
+2. 其他: 文心一言账户.
 ## 安装
 `pip install easy-ernie --upgrade`
 ## Cookie
