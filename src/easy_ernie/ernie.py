@@ -86,7 +86,7 @@ class Ernie:
                 'sessionId': session['sessionId'],
                 'name': session['sessionName'],
                 'state': session['state'],
-                'createTimestamp': auxiliary.timeToTimestamp(session['createTime']),
+                'creationTimestamp': auxiliary.timeToTimestamp(session['createTime']),
             }
             if session in topData:
                 tops.append(conversation)
@@ -200,7 +200,7 @@ class Ernie:
                 'chatId': chat['id'],
                 'role': chat['role'],
                 'text': chat['message'][0]['content'],
-                'createTimestamp': auxiliary.timeToTimestamp(chat['createTime'])
+                'creationTimestamp': auxiliary.timeToTimestamp(chat['createTime'])
             })
         currentChatId = data['data']['currentChatId']
         return {
@@ -218,7 +218,7 @@ class Ernie:
                 'sessionId': str(conversation['sessionId']),
                 'chatIds': conversation['chatIds'].split(','),
                 'key': conversation['shareKey'],
-                'createTimestamp': auxiliary.timeToTimestamp(data['createTime']),
+                'creationTimestamp': auxiliary.timeToTimestamp(data['createTime']),
                 'userId': conversation['userId']
             })
         return conversations

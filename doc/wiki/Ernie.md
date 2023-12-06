@@ -10,13 +10,13 @@ def getConversation(self) -> dict
         'sessionId': '17401225',
         'name': '你好',
         'state': 1,
-        'createTimestamp': 1701682120
+        'creationTimestamp': 1701682120
     }],
     'normal': [{
         'sessionId': '37401225',
         'name': '你好',
         'state': 1,
-        'createTimestamp': 1701682120
+        'creationTimestamp': 1701682120
     }]
 }
 ```
@@ -85,26 +85,26 @@ def getConversationDetail(self, sessionId: str) -> Optional[dict]
     'base': {
         'name': '你好',
         'state': 1,
-        'createTimestamp': 1701682120
+        'creationTimestamp': 1701682120
     },
     'histories': [
         {
             'chatId': '168463680',
             'role': 'user',
             'text': '你好',
-            'createTimestamp': 1701677042
+            'creationTimestamp': 1701677042
         },
         {
             'chatId': '168463681',
             'role': 'robot',
             'text': '你好！我很高兴为你提供帮助。请问有什么我可以为你做的吗？',
-            'createTimestamp': 1701677042
+            'creationTimestamp': 1701677042
         },
         {
             'chatId': '168463679',
             'role': 'robot',
             'text': '',
-            'createTimestamp': 1701677042,
+            'creationTimestamp': 1701677042,
         }
     ],
     'currentChatId': '168463681'
@@ -124,7 +124,7 @@ def getShareConversation(self) -> list
     'sessionId': '3110956036',
     'chatIds': ['168463680', '168463681', '168463679'],
     'key': 'IUGAEK',
-    'createTimestamp': 1701677042,
+    'creationTimestamp': 1701677042,
     'userId': '7654765',
     }
 ]
