@@ -28,8 +28,7 @@ class Ernie:
         }
 
     def getAcsToken(self) -> str:
-        data = requests.get(f'https://api.hack-er.cn/other/get_ernie_acs_token?BAIDUID={self.BAIDUID}',).json()
-        return data['data']
+        return requests.get(f'https://api.api.h2oye.com/other/get_ernie_acs_token?BAIDUID={self.BAIDUID}',).json()['data']
 
     def checkJson(self, data: str) -> None:
         try:
@@ -76,19 +75,19 @@ class Ernie:
                 'timestamp': auxiliary.getTimestamp()
             }
         ).json()
-        topData = topData['data']['sessions']
-        normalData = normalData['data']['sessions'] or []
+        topSession = topData['data']['sessions']
+        normalSession = normalData['data']['sessions'] or []
 
         tops = []
         normals = []
-        for session in topData + normalData:
+        for session in topSession + normalSession:
             conversation = {
                 'sessionId': session['sessionId'],
                 'name': session['sessionName'],
                 'state': session['state'],
                 'creationTimestamp': auxiliary.timeToTimestamp(session['createTime']),
             }
-            if session in topData:
+            if session in topSession:
                 tops.append(conversation)
             else:
                 normals.append(conversation)
@@ -131,7 +130,7 @@ class Ernie:
             },
             check=False
         ).json()
-        return True if data['code'] == 0 else False
+        return data['code'] == 0
 
     def deleteConversations(self, sessionIds: list) -> bool:
         data = self.post(
@@ -143,7 +142,7 @@ class Ernie:
             },
             check=False
         ).json()
-        return True if data['code'] == 0 else False
+        return data['code'] == 0
 
     def topConversation(self, sessionId: str) -> bool:
         data = self.post(
@@ -155,7 +154,7 @@ class Ernie:
             },
             check=False
         ).json()
-        return True if data['code'] == 0 else False
+        return data['code'] == 0
 
     def cancelTopConversation(self, sessionId: str) -> bool:
         data = self.post(
@@ -167,11 +166,11 @@ class Ernie:
             },
             check=False
         ).json()
-        return True if data['code'] == 0 else False
+        return data['code'] == 0
 
     def getConversationDetail(self, sessionId: str) -> Optional[dict]:
-        conversations = self.getConversation()
-        conversations = conversations['top'] + conversations['normal']
+        conversationG = self.getConversation()
+        conversations = conversationG['top'] + conversationG['normal']
         if not conversations:
             return None
         base = {}
@@ -228,7 +227,7 @@ class Ernie:
             f'https://yiyan.baidu.com/eb/share/{shareId}',
             {}
         ).json()
-        return True if data['code'] == 1 else False
+        return data['code'] == 1
 
     def deleteAllShareConversation(self, userId: str) -> bool:
         data = self.delete(
@@ -237,7 +236,7 @@ class Ernie:
                 'userId': userId
             }
         ).json()
-        return True if data['code'] == 1 else False
+        return data['code'] == 1
 
     def shareConversation(self, sessionId: str, chatIds: list) -> str:
         data = self.post(
@@ -295,14 +294,14 @@ class Ernie:
             if 'task_id' in data:
                 continue
 
-            data = data['data']
+            dataD = data['data']
             if event == 'major':
-                sessionId = data['createSessionResponseVoCommonResult']['data']['sessionId']
-                botChatId = data['createChatResponseVoCommonResult']['data']['botChat']['id']
+                sessionId = dataD['createSessionResponseVoCommonResult']['data']['sessionId']
+                botChatId = dataD['createChatResponseVoCommonResult']['data']['botChat']['id']
             elif event == 'message':
-                done = data['is_end']
+                done = dataD['is_end']
                 if done == 0:
-                    answer = data['content']
+                    answer = dataD['content']
                     urls = re.findall(imageUrlPattern, answer)
                     answer = re.sub(imageUrlPattern, '', answer)
                     answer = answer.replace('<br>', '\n')
@@ -314,7 +313,7 @@ class Ernie:
                         'done': False
                     }
                 else:
-                    answer = data['tokens_all']
+                    answer = dataD['tokens_all']
                     urls = re.findall(imageUrlPattern, answer)
                     answer = re.sub(imageUrlPattern, '', answer)
                     answer = answer.replace('<br>', '\n')
@@ -328,8 +327,7 @@ class Ernie:
                     }
 
     def ask(self, question: str, sessionId: str='', sessionName: str='', parentChatId: str='0') -> dict:
-        result = {}
-        for data in self.askStream(question, sessionId, sessionName, parentChatId):
-            result = data
+        data = list(self.askStream(question, sessionId, sessionName, parentChatId))
+        result = data[-1]
         del result['done']
         return result
