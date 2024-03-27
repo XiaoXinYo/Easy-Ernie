@@ -11,15 +11,14 @@ class FastErnie:
     def askStream(self, question: str) -> Generator:
         if not self.sessionId:
             self.sessionName = question
-        for data in self.ernie.askStream(question, self.sessionId, self.sessionName, self.parentChatId):
+        for data in self.ernie.askStream(question, sessionId=self.sessionId, sessionName=self.sessionName, parentChatId=self.parentChatId):
             yield data
         self.sessionId = data['sessionId']
         self.parentChatId = data['botChatId']
     
     def ask(self, question: str) -> dict:
-        result = {}
-        for data in self.askStream(question):
-            result = data
+        data = list(self.askStream(question))
+        result = data[-1]
         del result['done']
         return result
     
